@@ -3,18 +3,11 @@ import configparser
 
 
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read('config_new.ini')
 
 mongo_user = config.get('DB', 'USER')
 mongodb_pass = config.get('DB', 'PASS')
 db_name = config.get('DB', 'DB_NAME')
 domain = config.get('DB', 'DOMAIN')
-
-print(mongo_user)
-print(mongodb_pass)
-print(db_name)
-print(domain)
-# connect to cluster on AtlasDB with connection string
-
-#connect(host=f"""mongodb+srv://{mongo_user}:{mongodb_pass}@{domain}/{db_name}?retryWrites=true&w=majority""", ssl=True)
 connect(host=f"""mongodb+srv://{mongo_user}:{mongodb_pass}@{domain}/{db_name}?retryWrites=true&w=majority""", ssl=True)
+connect_string  =f"""mongodb+srv://{mongo_user}:{mongodb_pass}@{domain}/?retryWrites=true&w=majority"""

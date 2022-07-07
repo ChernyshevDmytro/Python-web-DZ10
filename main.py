@@ -1,133 +1,107 @@
 from datetime import datetime
 from pymongo import MongoClient
-#import connect
+import connect
 from models import Person
 
 
+#client = MongoClient(f"{connect.connect}")
+#db = client[ f"{connect.db_name}" ]
+#col = db[ "testcol" ]
+#result_one = col.insert_one({"name": "aaa"})
 
-client = MongoClient("mongodb+srv://shakal1985:cherdima6646239@cluster0.pg6dc.mongodb.net/?retryWrites=true&w=majority")
-db = client
+#print(result_one.inserted_id)
 
-result_one = db.Contacts.insert_one(
-    {
-        "name": "barsik",        
-        "phones": ["ходит в тапки"],
-    }
-)
-
-print(result_one.inserted_id)
-"""
-Person(name = "Barsik").save()
 COMMANDS_LIST = ["hello", "exit", "close", "good bye", "show_all", "phone", "add", "add_phone",
                  "del_phone", "edit_phone", "del_contact", "add_birthday", "find"]
 
 def handling(user_command_normalized):
     if "add" == str(user_command_normalized[0]):
-        excist = 0
-        for person in session.query(Person).all():
-            if f"{user_command_normalized[1]}" == person.name:
-                print(f"Contact name {user_command_normalized[1]} exists. Please use another name")     
-                excist=1
-        
-        if excist == 0: 
-            new_person = Person(name=f"{user_command_normalized[1]}")           
-            session.add(new_person)            
-            session.commit()
+        person = Person.objects(name=f"{user_command_normalized[1]}")
+        if not person:
+            person = Person(name=f"{user_command_normalized[1]}").save()
             print(f'Person {user_command_normalized[1]} added')
+        else:
+            print(f"Contact name {user_command_normalized[1]} exists. Please use another name")
 
     elif "add_phone" == str(user_command_normalized[0]):
-        excist = 0
-        for person in session.query(Person).all():
-            if f"{user_command_normalized[1]}" == person.name:
-                excist=1
-                if person.phones:
-                    person.phones.append(Phones(phone=f"{user_command_normalized[2]}"))
-                else:
-                    person.phones =[Phones(phone=f"{user_command_normalized[2]}")]     
-                session.add(person)                      
-        if excist == 0:
-            new_person = Person(name=f"{user_command_normalized[1]}")
-            new_person.phones = [Phones(phone=f"{user_command_normalized[2]}")]
-            session.add(new_person)            
-        session.commit()
+        person = Person.objects(name=f"{user_command_normalized[1]}")
+
+        if person:    
+            person = Person.objects.get(name=f"{user_command_normalized[1]}")
+            person.phones.append( f"{user_command_normalized[2]}")
+            person.save()
+        
+        elif not person:
+            person = Person(name=f"{user_command_normalized[1]}", phones= [f"{user_command_normalized[2]}", ]).save()
+            print(f'Person {user_command_normalized[1]} added') 
         
     elif "phone" == str(user_command_normalized[0]):
-        excist = 0
-        for person in session.query(Person).all():
-            if f"{user_command_normalized[1]}" == person.name:
-                for phone in person.phones:
-                    print(phone.phone)
-       
+        person = Person.objects(name=f"{user_command_normalized[1]}")
+        if person:    
+            person = Person.objects.get(name=f"{user_command_normalized[1]}")
+            print(person.phones)     
 
     elif "add_birthday" == str(user_command_normalized[0]):
         raw_birtday = f"{user_command_normalized[2]}"
         dt_birthday = datetime(year=int(raw_birtday[0:4]), month=int(raw_birtday[4:6]), day=int(raw_birtday[6:]))
-        excist = 0
-        for person in session.query(Person).all():
-            if f"{user_command_normalized[1]}" == person.name:
-                excist=1
-                person.birthday=dt_birthday 
-                session.add(person)
-                print(f'Birthaday of {user_command_normalized[1]} is added')
-                session.commit()          
-        if excist == 0:            
-            new_person = Person(name=f"{user_command_normalized[1]}")
-            new_person.birthday=dt_birthday 
-            session.add(new_person) 
-            print(f'Person {user_command_normalized[1]} added')  
-            session.commit()
+        person = Person.objects(name=f"{user_command_normalized[1]}")
+
+        if person:    
+            person = Person.objects.get(name=f"{user_command_normalized[1]}")
+            person.birthday = dt_birthday
+            person.save()
+            print(f'Person {user_command_normalized[1]} added birthday {dt_birthday}')        
+        elif not person:
+            person = Person(name=f"{user_command_normalized[1]}", birthday= dt_birthday).save()
+            print(f'Person {user_command_normalized[1]} added')         
+
 
     elif "edit_phone" == str(user_command_normalized[0]):        
-        exist = 0
-        for person in session.query(Person).all():
-            if f"{user_command_normalized[1]}" == person.name:
-                for phone in person.phones:                              
-                    if phone.phone == int(user_command_normalized[2]):
-                        phone.phone = int(user_command_normalized[3])
-                        phone.person_id=person.id
-                        print(f"Phone {user_command_normalized[2]} changet at {user_command_normalized[3]}")
-                        exist = 1                                             
-                        session.add(phone) 
-                        session.commit()
-        if exist == 0:
-            print(f"There are no Person or phone") 
+        person = Person.objects(name=f"{user_command_normalized[1]}")
+
+        if person:    
+            person = Person.objects.get(name=f"{user_command_normalized[1]}")
+            for ind, phone in enumerate(person.phones):
+                if phone == f"{user_command_normalized[2]}":
+                    person.phones[ind] = f"{user_command_normalized[3]}"            
+                person.save()        
+        else:
+            print ("Person or phone does not exist")
 
     elif "del_phone" == str(user_command_normalized[0]):        
-        exist = 0
-        for person in session.query(Person).all():
-            if f"{user_command_normalized[1]}" == person.name:
-                for phone in person.phones:                              
-                    if phone.phone == int(user_command_normalized[2]):                        
-                        print(f"Phone {user_command_normalized[2]} deleted")
-                        exist = 1                                             
-                        session.delete(phone) 
-                        session.commit()
-        if exist == 0:
-            print(f"There are no Person or phone")                                             
+        person = Person.objects(name=f"{user_command_normalized[1]}")
+
+        if person:    
+            person = Person.objects.get(name=f"{user_command_normalized[1]}")
+            for ind, phone in enumerate(person.phones):
+                if phone == f"{user_command_normalized[2]}":
+                    person.phones.pop(ind)            
+                person.save()        
+        else:
+            print ("Person or phone does not exist")                                            
 
     elif "del_contact" == str(user_command_normalized[0]):        
-        exist = 0
-        print("aaa")
-        session.query(Person).filter(Person.name == f"{user_command_normalized[1]}").delete(synchronize_session='fetch')
-        session.commit()
+        person = Person.objects(name=f"{user_command_normalized[1]}")
+
+        if person:    
+            person = Person.objects.get(name=f"{user_command_normalized[1]}")
+            person.delete()
 
     elif "find" == str(user_command_normalized[0]):       
-        for person in session.query(Person).all():
-            if user_command_normalized[1] in person.name:
-                print (person.name)
-            for phone in person.phones:
-                print(phone.phone)
-    
-    elif "show_all" == str(user_command_normalized[0]):       
-        contact =[] 
-        for person in session.query(Person).all():
-            contact.append(person.name)
-            if person.birthday != None:
-                contact.append(person.birthday)    
-            for phone in person.phones:
-                contact.append(phone.phone)                                    
-            print (contact)
-            contact.clear()
+        person_name = Person.objects.get(name=f"{user_command_normalized[1]}")
+        if person_name:    
+            if person_name.birthday != None:
+                print(f"{person_name.name}, {person_name.phones}, {person_name.birthday}")
+            else:
+                print(f"{person_name.name}, {person_name.phones}")
+
+
+    elif "show_all" == str(user_command_normalized[0]):      
+        for person in Person.objects.all():         
+            if person.birthday == None:
+                print(f"{person.name}:{person.phones}") 
+            else:
+                print(f"{person.name}:{person.phones} DB{person.birthday}")                                      
 
 def input_():
     while True:
@@ -149,4 +123,4 @@ while True:
     try:
         a() 
     except   TypeError:
-        pass         """                
+        pass                        
