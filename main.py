@@ -1,7 +1,7 @@
 from datetime import datetime
 from pymongo import MongoClient
 import connect
-from models import Person
+from models import Person, Phone, Birthday
 
 
 #client = MongoClient(f"{connect.connect}")
@@ -28,31 +28,42 @@ def handling(user_command_normalized):
 
         if person:    
             person = Person.objects.get(name=f"{user_command_normalized[1]}")
-            person.phones.append( f"{user_command_normalized[2]}")
+            phone = Phone(phone=f"{user_command_normalized[2]}") 
+            person.phones.append(phone)
             person.save()
         
         elif not person:
-            person = Person(name=f"{user_command_normalized[1]}", phones= [f"{user_command_normalized[2]}", ]).save()
+            person = Person(name=f"{user_command_normalized[1]}")
+            phone = Phone(phone=f"{user_command_normalized[2]}") 
+            person.phones.append(phone)
+            person.save()
+                    
             print(f'Person {user_command_normalized[1]} added') 
         
     elif "phone" == str(user_command_normalized[0]):
         person = Person.objects(name=f"{user_command_normalized[1]}")
         if person:    
             person = Person.objects.get(name=f"{user_command_normalized[1]}")
-            print(person.phones)     
+            for phones in person.phones:
+                print(phones.phone)     
 
     elif "add_birthday" == str(user_command_normalized[0]):
         raw_birtday = f"{user_command_normalized[2]}"
-        dt_birthday = datetime(year=int(raw_birtday[0:4]), month=int(raw_birtday[4:6]), day=int(raw_birtday[6:]))
+        
+        dt_birthday = Birthday(birthday=datetime(year=int(raw_birtday[0:4]), month=int(raw_birtday[4:6]), day=int(raw_birtday[6:])))
+        
         person = Person.objects(name=f"{user_command_normalized[1]}")
 
         if person:    
             person = Person.objects.get(name=f"{user_command_normalized[1]}")
-            person.birthday = dt_birthday
+            person.birthday = Birthday(dt_birthday)
             person.save()
             print(f'Person {user_command_normalized[1]} added birthday {dt_birthday}')        
-        elif not person:
-            person = Person(name=f"{user_command_normalized[1]}", birthday= dt_birthday).save()
+        elif not person:            
+            person = Person(name=f"{user_command_normalized[1]}")
+            person.birthday = dt_birthday
+            person.save()
+
             print(f'Person {user_command_normalized[1]} added')         
 
 
@@ -62,8 +73,8 @@ def handling(user_command_normalized):
         if person:    
             person = Person.objects.get(name=f"{user_command_normalized[1]}")
             for ind, phone in enumerate(person.phones):
-                if phone == f"{user_command_normalized[2]}":
-                    person.phones[ind] = f"{user_command_normalized[3]}"            
+                if phone.phone == int(f"{user_command_normalized[2]}"):                    
+                    person.phones[ind].phone = f"{user_command_normalized[3]}"            
                 person.save()        
         else:
             print ("Person or phone does not exist")
@@ -74,7 +85,7 @@ def handling(user_command_normalized):
         if person:    
             person = Person.objects.get(name=f"{user_command_normalized[1]}")
             for ind, phone in enumerate(person.phones):
-                if phone == f"{user_command_normalized[2]}":
+                if phone.phone ==  int(f"{user_command_normalized[2]}"):
                     person.phones.pop(ind)            
                 person.save()        
         else:
@@ -91,17 +102,21 @@ def handling(user_command_normalized):
         person_name = Person.objects.get(name=f"{user_command_normalized[1]}")
         if person_name:    
             if person_name.birthday != None:
-                print(f"{person_name.name}, {person_name.phones}, {person_name.birthday}")
+                for i in person_name.phones:
+                    print(f"{person_name.name}, {i.phone}, {person_name.birthday.birthday}")
             else:
-                print(f"{person_name.name}, {person_name.phones}")
+                for j in person_name.phones:
+                    print(f"{person_name.name}, {j.phone}")
 
 
     elif "show_all" == str(user_command_normalized[0]):      
         for person in Person.objects.all():         
-            if person.birthday == None:
-                print(f"{person.name}:{person.phones}") 
+            if not person.birthday:
+                for i in person.phones:
+                    print(f"{person.name}:{i.phone}") 
             else:
-                print(f"{person.name}:{person.phones} DB{person.birthday}")                                      
+                for j in person.phones:                
+                    print(f"{person.name}:{j.phone} DB{person.birthday.birthday}")                                      
 
 def input_():
     while True:

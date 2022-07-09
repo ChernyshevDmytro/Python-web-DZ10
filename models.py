@@ -1,8 +1,17 @@
 from mongoengine import EmbeddedDocument, Document
-from mongoengine.fields import DateTimeField,  ListField, StringField
+from mongoengine.fields import EmbeddedDocumentField, DateTimeField,  ListField, StringField, IntField, ReferenceField
 
+
+class Phone(EmbeddedDocument):
+    phone = IntField()
+
+
+class Birthday(EmbeddedDocument):
+    birthday = DateTimeField()
 
 class Person(Document):
     name = StringField()
-    birthday = DateTimeField()
-    phones =ListField(StringField()) 
+    birthday = EmbeddedDocumentField(Birthday)
+    phones =ListField(EmbeddedDocumentField(Phone))
+
+
